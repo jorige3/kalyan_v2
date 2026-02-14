@@ -5,8 +5,10 @@ src/analysis/sangam_analysis.py
 Module for advanced Sangam analysis, including hot, cold, and due Sangams.
 """
 
+from typing import Dict, List
+
 import pandas as pd
-from typing import List, Dict
+
 
 class SangamAnalyzer:
     """

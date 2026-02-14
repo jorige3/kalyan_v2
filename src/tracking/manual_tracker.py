@@ -1,8 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 import config
 

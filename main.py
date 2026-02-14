@@ -1,27 +1,34 @@
 import argparse
-import logging
-import os
-import json
 import hashlib
-import pandas as pd
-from pathlib import Path
+import json
+import logging
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Dict, List
 
+import pandas as pd
+from dotenv import load_dotenv  # Import load_dotenv
 from fpdf import FPDF, XPos, YPos
-from dotenv import load_dotenv # Import load_dotenv
 
-import config
-from src.engine.kalyan_engine import KalyanEngine
+from src.analysis.backtester import Backtester  # Import Backtester
+from src.analysis.core_logic import (
+    generate_daily_summary_and_confidence,  # Import generate_daily_summary_and_confidence
+)
 from src.analysis.hot_cold import HotColdAnalyzer
-from src.analysis.trend_window import TrendWindowAnalyzer
 from src.analysis.sangam_analysis import SangamAnalyzer
-from src.analysis.explainability import explain_pick
+from src.analysis.trend_window import TrendWindowAnalyzer
+from src.engine.kalyan_engine import KalyanEngine
+from src.telegram_notifier import (  # Import Telegram notifier and escape utility
+    escape_html_chars,
+    send_telegram_message,
+)
+from src.tracking.manual_tracker import (  # Import manual tracking functions
+    get_tracking_summary,
+    load_manual_predictions,
+    save_manual_predictions,
+    track_hits,
+)
 from src.ux.text_templates import ReportText
-from src.telegram_notifier import send_telegram_message, escape_html_chars # Import Telegram notifier and escape utility
-from src.analysis.backtester import Backtester # Import Backtester
-from src.analysis.core_logic import generate_daily_summary_and_confidence # Import generate_daily_summary_and_confidence
-from src.tracking.manual_tracker import load_manual_predictions, save_manual_predictions, track_hits, get_tracking_summary # Import manual tracking functions
 
 # Load environment variables from .env file
 load_dotenv()
@@ -276,63 +283,60 @@ def main():
     else:
         telegram_message_parts.append("No top picks available.")
 
-    full_message = "\n".join(telegram_message_parts)
-    send_telegram_message(full_message)
+
 
     # --- Manual Prediction Tracking ---
     analysis_date_str = analysis_date.strftime("%Y-%m-%d")
     
     # Get actual results for the analysis_date
-    actual_open = "N/A"
-    actual_close = "N/A"
-    actual_jodi = "N/A"
+    actual_open = "N/A" # Initialize here, will be updated if data is found
+    actual_close = "N/A" # Initialize here, will be updated if data is found
+    actual_jodi = "N/A" # Initialize here, will be updated if data is found
     
     current_day_data = df[df['date'] == analysis_date_str]
     if not current_day_data.empty:
-        # Assuming 'open_panel', 'close_panel', 'jodi' are available in df
+        # Assign actual values if data is found
         actual_open = str(current_day_data['open'].iloc[-1])
         actual_close = str(current_day_data['close'].iloc[-1])
         actual_jodi = str(current_day_data['jodi'].iloc[-1])
-    else:
+        
+        manual_preds_data = load_manual_predictions()
+        if analysis_date_str in manual_preds_data: # Only track if there are predictions for today
+            manual_preds_data = track_hits(
+                analysis_date_str, 
+                actual_open, 
+                actual_close, 
+                actual_jodi, 
+                manual_preds_data
+            )
+            save_manual_predictions(manual_preds_data)
+            tracking_summary = get_tracking_summary(manual_preds_data)
+            logging.info(f"Manual prediction tracking summary: {tracking_summary}")
+
+            # Enhance Telegram message with tracking summary
+            telegram_message_parts.append("\n<b>Manual Prediction Tracking:</b>")
+            telegram_message_parts.append(f"Total Predictions: {tracking_summary['total_predictions']}")
+            telegram_message_parts.append(f"Total Hits: {tracking_summary['total_hits']}")
+            telegram_message_parts.append(f"Overall Hit Rate: {tracking_summary['overall_hit_rate']:.2f}%")
+            
+            # Add daily breakdown if applicable
+            if analysis_date_str in tracking_summary['daily_breakdown']:
+                daily_summary = tracking_summary['daily_breakdown'][analysis_date_str]
+                telegram_message_parts.append(f"<u>Today ({analysis_date_str}):</u>")
+                telegram_message_parts.append(f"  Hits: {daily_summary['hits']}")
+                telegram_message_parts.append(f"  Misses: {daily_summary['misses']}")
+                telegram_message_parts.append(f"  Pending: {daily_summary['pending']}")
+    else: # This `else` is correctly aligned with `if not current_day_data.empty:`
         logging.warning(f"No actual data found for {analysis_date_str} in CSV. Cannot track manual predictions.")
-
-    logging.debug(f"DEBUG: Tracking for date: {analysis_date_str}")
-    logging.debug(f"DEBUG: Actual Open: {actual_open}, Actual Close: {actual_close}, Actual Jodi: {actual_jodi}")
-
-    manual_preds_data = load_manual_predictions()
-    if analysis_date_str in manual_preds_data: # Only track if there are predictions for today
-        manual_preds_data = track_hits(
-            analysis_date_str, 
-            actual_open, 
-            actual_close, 
-            actual_jodi, 
-            manual_preds_data
-        )
-        save_manual_predictions(manual_preds_data)
-        tracking_summary = get_tracking_summary(manual_preds_data)
-        logging.info(f"Manual prediction tracking summary: {tracking_summary}")
-
-        # Enhance Telegram message with tracking summary
         telegram_message_parts.append("\n<b>Manual Prediction Tracking:</b>")
-        telegram_message_parts.append(f"Total Predictions: {tracking_summary['total_predictions']}")
-        telegram_message_parts.append(f"Total Hits: {tracking_summary['total_hits']}")
-        telegram_message_parts.append(f"Overall Hit Rate: {tracking_summary['overall_hit_rate']:.2f}%")
-        
-        # Add daily breakdown if applicable
-        if analysis_date_str in tracking_summary['daily_breakdown']:
-            daily_summary = tracking_summary['daily_breakdown'][analysis_date_str]
-            telegram_message_parts.append(f"<u>Today ({analysis_date_str}):</u>")
-            telegram_message_parts.append(f"  Hits: {daily_summary['hits']}")
-            telegram_message_parts.append(f"  Misses: {daily_summary['misses']}")
-            telegram_message_parts.append(f"  Pending: {daily_summary['pending']}")
-        
-        # Re-send the message with updated content
-        full_message = "\n".join(telegram_message_parts) # No HTML replace here, just join
-        send_telegram_message(full_message)
+        telegram_message_parts.append(f"<i>No actual data found for {analysis_date_str}. Manual predictions not tracked.</i>")
+
 
     # --- End Manual Prediction Tracking ---
-
-
+    
+    # Send final Telegram message with all accumulated parts
+    full_message = "\n".join(telegram_message_parts)
+    send_telegram_message(full_message)
 
 
 if __name__ == "__main__":

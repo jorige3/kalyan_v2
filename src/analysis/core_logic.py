@@ -1,9 +1,9 @@
-from typing import Dict, List
-from datetime import datetime, timezone
+from typing import Dict
 
 import config
 from src.analysis.explainability import explain_pick
 from src.ux.text_templates import ReportText
+
 
 def generate_daily_summary_and_confidence(analysis_results: Dict) -> Dict:
     signals = {

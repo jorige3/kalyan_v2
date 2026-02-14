@@ -1,8 +1,9 @@
-import os
-import logging
-import requests
+import html  # Added
 import json
-import html # Added
+import logging
+import os
+
+import requests
 
 # Configure logging
 # Set level to DEBUG temporarily to see all messages, will revert to INFO later
@@ -60,7 +61,7 @@ if __name__ == "__main__":
         "This is a <b>test message</b> from the Kalyan v2 project.\n"
         "Please ensure your Telegram bot token and chat ID are correctly set in your .env file.\n"
         "Here's some <i>italic text</i> and <code>code example</code>."
-        f"And a <a href='https://example.com'>link</a> with some & characters."
+        "And a <a href='https://example.com'>link</a> with some & characters."
     )
     # Since the message already contains HTML tags, we should only escape the dynamic content,
     # or ensure the test message itself is properly formed HTML.
