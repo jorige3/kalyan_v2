@@ -4,3 +4,6 @@ python-dateutil==2.9.0.post0
 ruff==0.14.14
 six==1.17.0
 fpdf2==2.7.9 # Added for PDF generation
+python-telegram-bot
+requests
+python-dotenv

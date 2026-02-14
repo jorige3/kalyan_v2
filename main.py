@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Dict, List
 
 from fpdf import FPDF, XPos, YPos
+from dotenv import load_dotenv # Import load_dotenv
 
 import config
 from src.engine.kalyan_engine import KalyanEngine
@@ -16,6 +17,10 @@ from src.analysis.trend_window import TrendWindowAnalyzer
 from src.analysis.sangam_analysis import SangamAnalyzer
 from src.analysis.explainability import explain_pick
 from src.ux.text_templates import ReportText
+from src.telegram_notifier import send_telegram_message, escape_markdown_v2_chars # Import Telegram notifier and escape utility
+
+# Load environment variables from .env file
+load_dotenv()
 
 # -------------------------------------------------------------------
 # Paths & Logging
@@ -186,7 +191,14 @@ def generate_daily_summary_and_confidence(analysis_results: Dict) -> Dict:
             "reasons": explain_pick(val, signals)
         })
 
-    scored.sort(key=lambda x: x["score"], reverse=True)
+    def _pick_sort_key(p):
+        try:
+            num = int(p["value"])
+        except (TypeError, ValueError):
+            num = None
+        return (-p["score"], num if num is not None else float("inf"), str(p["value"]))
+
+    scored.sort(key=_pick_sort_key)
 
     return {
         "market_mood": "Active" if scored else "Quiet",
@@ -241,20 +253,23 @@ def main():
         Path(args.csv)
     )
 
-    print("\n".join([
+    console_output_parts = [
         "=" * 60,
         f"{ReportText.CONSOLE_HEADER_TITLE} | {analysis_date:%d-%b-%Y}",
         "=" * 60,
         f"Market Mood           : {summary['market_mood']}",
         f"Analytical Confidence : {summary['analytical_confidence_score']}/10",
         "-" * 60
-    ]))
+    ]
 
     for p in summary["top_picks_with_confidence"]:
-        print(f"{p['value']} ({p['confidence']})")
+        console_output_parts.append(f"{p['value']} ({p['confidence']})")
         for r in p["reasons"]:
-            print(f"  • {r}")
-        print()
+            console_output_parts.append(f"  • {r}")
+        console_output_parts.append("") # Add an empty line for spacing
+    
+    print("\n".join(console_output_parts))
+
 
     pdf_path = REPORTS_DIR / f"kalyan_analysis_{analysis_date:%Y-%m-%d}.pdf"
     if not pdf_path.exists():
@@ -268,6 +283,25 @@ def main():
         pdf.add_picks_table(summary["top_picks_with_confidence"])
         pdf.output(pdf_path)
         logging.info(f"📄 PDF saved to {pdf_path}")
+
+    # Prepare and send Telegram notification
+    telegram_message_parts = [
+        f"*{escape_markdown_v2_chars(ReportText.CONSOLE_HEADER_TITLE)}* \\- {analysis_date:%d\\-%b\\-%Y}",
+        f"Market Mood: `{escape_markdown_v2_chars(summary['market_mood'])}`",
+        f"Analytical Confidence: `{summary['analytical_confidence_score']}/10`",
+        "*Top Picks:*"
+    ]
+
+    for p in summary["top_picks_with_confidence"]:
+        value = escape_markdown_v2_chars(str(p['value']))
+        confidence = escape_markdown_v2_chars(p['confidence'])
+        telegram_message_parts.append(f"• `{value}` \\({confidence}\\)")
+        for r in p["reasons"]:
+            escaped_reason = escape_markdown_v2_chars(r)
+            telegram_message_parts.append(f"  \\- _{escaped_reason}_")
+    
+    send_telegram_message("\n\n".join(telegram_message_parts))
+    logging.info("Telegram notification sent.")
 
 
 if __name__ == "__main__":
