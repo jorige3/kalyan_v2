@@ -32,6 +32,11 @@ The project has been transformed into a "strong output" powerhouse as requested.
     *   **Circular Import Resolution:** Refactored `generate_daily_summary_and_confidence` into `src/analysis/core_logic.py` to eliminate circular dependencies, ensuring smoother module imports.
     *   **Removed Redundant Script:** `scripts/send_report.py` has been removed as its functionality is now absorbed by `main.py`.
     *   **Logging Refinement:** Adjusted Telegram notifier logging for production readiness.
+*   **Manual Prediction Tracking System:**
+    *   **Implemented `src/tracking/manual_tracker.py`**: A new module for managing and tracking manual predictions.
+    *   **`config/manual_predictions.json`**: Introduced a JSON file for storing user-defined predictions (single digits, jodis) with tracking status (pending, hit, miss).
+    *   **Integrated into `main.py`**: `main.py` now loads manual predictions, compares them against actual market results, updates their status, saves the changes, and includes a comprehensive tracking summary in the Telegram notification.
+    *   **Robust Comparison Logic**: Implemented value normalization in `manual_tracker.py` to ensure accurate hit/miss detection despite data type variations (e.g., "6" vs "6.0").
 
 **Current Status:**
 
@@ -41,6 +46,7 @@ The system now provides:
 *   CLI-driven execution.
 *   A PDF report with basic formatting, including Unicode support.
 *   Automated Telegram notifications with HTML formatting for enhanced reliability.
+*   A comprehensive manual prediction tracking system integrated with analysis and reporting.
 *   A placeholder for Monte Carlo simulations.
 
 The project is now in a much stronger state, fulfilling the core requirements of the prompt. I am ready for your next instruction.
