@@ -5,7 +5,7 @@ from src.engine.kalyan_engine import KalyanEngine
 from src.analysis.hot_cold import HotColdAnalyzer
 from src.analysis.trend_window import TrendWindowAnalyzer
 from src.analysis.sangam_analysis import SangamAnalyzer
-from main import generate_daily_summary_and_confidence # Import from main.py
+from src.analysis.core_logic import generate_daily_summary_and_confidence # Import from core_logic.py
 
 
 

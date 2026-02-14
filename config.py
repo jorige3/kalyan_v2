@@ -37,3 +37,8 @@ CONFIDENCE_THRESHOLDS = {
     "HIGH": 2.5,
     "MEDIUM": 1.0,
 }
+
+# --- Manual Predictions Configuration ---
+MANUAL_PREDICTIONS_CONFIG = {
+    "FILE_PATH": "config/manual_predictions.json"
+}

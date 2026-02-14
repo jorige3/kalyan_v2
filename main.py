@@ -3,6 +3,7 @@ import logging
 import os
 import json
 import hashlib
+import pandas as pd
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, List
@@ -18,6 +19,9 @@ from src.analysis.sangam_analysis import SangamAnalyzer
 from src.analysis.explainability import explain_pick
 from src.ux.text_templates import ReportText
 from src.telegram_notifier import send_telegram_message, escape_html_chars # Import Telegram notifier and escape utility
+from src.analysis.backtester import Backtester # Import Backtester
+from src.analysis.core_logic import generate_daily_summary_and_confidence # Import generate_daily_summary_and_confidence
+from src.tracking.manual_tracker import load_manual_predictions, save_manual_predictions, track_hits, get_tracking_summary # Import manual tracking functions
 
 # Load environment variables from .env file
 load_dotenv()
@@ -31,8 +35,9 @@ REPORTS_DIR = BASE_DIR / "reports"
 REPORTS_DIR.mkdir(exist_ok=True)
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO, # Reset to INFO
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    force=True # Ensure reconfiguration
 )
 
 # -------------------------------------------------------------------
@@ -144,69 +149,7 @@ class PDFReport(FPDF):
             self.cell(widths[2], 7, f'{p["score"]:.2f}', 1)
             self.multi_cell(widths[3], 7, reasons, 1)
 
-# -------------------------------------------------------------------
-# Core Summary Logic
-# -------------------------------------------------------------------
 
-def generate_daily_summary_and_confidence(analysis_results: Dict) -> Dict:
-    signals = {
-        "high_frequency": analysis_results["hot_jodis"],
-        "trend_window": analysis_results["trend_due_jodis"],
-        "extended_absence": analysis_results["due_jodis"],
-        "exhausted": analysis_results["exhausted_jodis"],
-    }
-
-    all_picks = set().union(
-        analysis_results["hot_jodis"],
-        analysis_results["due_jodis"],
-        analysis_results["trend_due_jodis"],
-        analysis_results["hot_open_sangams"],
-        analysis_results["hot_close_sangams"],
-        analysis_results["due_open_sangams"],
-        analysis_results["due_close_sangams"],
-    )
-
-    scored = []
-    for val in all_picks:
-        score = 0
-        if val in signals["high_frequency"]:
-            score += config.SCORING_WEIGHTS["HIGH_FREQUENCY_JODI"]
-        if val in signals["trend_window"]:
-            score += config.SCORING_WEIGHTS["TREND_ALIGNED_JODI"]
-        if val in signals["extended_absence"]:
-            score += config.SCORING_WEIGHTS["EXTENDED_ABSENCE_JODI"]
-        if val in signals["exhausted"]:
-            score += config.SCORING_WEIGHTS["EXHAUSTED_PATTERN_PENALTY"]
-
-        confidence = ReportText.CONFIDENCE_LOW
-        if score >= config.CONFIDENCE_THRESHOLDS["HIGH"]:
-            confidence = ReportText.CONFIDENCE_HIGH
-        elif score >= config.CONFIDENCE_THRESHOLDS["MEDIUM"]:
-            confidence = ReportText.CONFIDENCE_MEDIUM
-
-        scored.append({
-            "value": val,
-            "score": score,
-            "confidence": confidence,
-            "reasons": explain_pick(val, signals)
-        })
-
-    def _pick_sort_key(p):
-        try:
-            num = int(p["value"])
-        except (TypeError, ValueError):
-            num = None
-        return (-p["score"], num if num is not None else float("inf"), str(p["value"]))
-
-    scored.sort(key=_pick_sort_key)
-
-    return {
-        "market_mood": "Active" if scored else "Quiet",
-        "analytical_confidence_score": min(10, 6 + len([s for s in scored if s["confidence"] == "High"])),
-        "strongest_signals": scored[:3],
-        "caution_areas": [],
-        "top_picks_with_confidence": scored[:5],
-    }
 
 # -------------------------------------------------------------------
 # Main
@@ -283,6 +226,111 @@ def main():
         pdf.add_picks_table(summary["top_picks_with_confidence"])
         pdf.output(pdf_path)
         logging.info(f"📄 PDF saved to {pdf_path}")
+
+    # --- Telegram Notification ---
+    hit_rate = 0.0
+    try:
+        backtester_instance = Backtester(df)
+
+        if not df.empty and len(df) > backtester_instance.warmup:
+            backtest_results = backtester_instance.run()
+            if not backtest_results.empty:
+                hit_rate = backtest_results['top5_hit'].mean() * 100
+                logging.info(f"Calculated hit rate for Telegram: {hit_rate:.2f}%")
+            else:
+                logging.warning("Backtester returned empty results for Telegram.")
+        else:
+            logging.warning("Not enough historical data for backtesting for Telegram.")
+    except Exception as e:
+        logging.error(f"Error calculating backtest hit rate for Telegram: {e}")
+
+    latest_actual_jodi = "N/A"
+    try:
+        df_current_data = pd.read_csv(Path(args.csv))
+        if not df_current_data.empty:
+            latest_actual_jodi = str(df_current_data['jodi'].iloc[-1])
+    except FileNotFoundError:
+        logging.warning(f"Data file {Path(args.csv)} not found for Telegram.")
+    except Exception as e:
+        logging.error(f"Error reading latest actual Jodi for Telegram: {e}")
+
+    telegram_message_parts = [
+        f"<b>{escape_html_chars(ReportText.CONSOLE_HEADER_TITLE)}</b> - {datetime.now().strftime('%d-%b-%Y')}",
+        f"Market Mood: <code>{escape_html_chars(summary['market_mood'])}</code>",
+        f"Analytical Confidence: <code>{summary['analytical_confidence_score']}/10</code>",
+        f"Overall Backtest Hit Rate (Top 5): <code>{hit_rate:.2f}%</code>",
+        f"Latest Result (Jodi): <code>{escape_html_chars(latest_actual_jodi)}</code>",
+        "", # Empty line for spacing, which HTML generally ignores unless <br> or <p> is used.
+        "<b>Top Analytical Picks:</b>"
+    ]
+
+    if summary["top_picks_with_confidence"]:
+        for p in summary["top_picks_with_confidence"][:5]: # Limit to top 5 picks
+            value = str(p.get('value', 'N/A')) # Already passed through escape_html_chars in the `code` tag.
+            confidence = escape_html_chars(p.get('confidence', 'N/A'))
+            telegram_message_parts.append(f"• <code>{value}</code> <b>({confidence})</b>")
+            reasons = p.get("reasons", [])
+            if reasons:
+                for r in reasons:
+                    telegram_message_parts.append(f"  - <i>{escape_html_chars(r)}</i>")
+    else:
+        telegram_message_parts.append("No top picks available.")
+
+    full_message = "\n".join(telegram_message_parts)
+    send_telegram_message(full_message)
+
+    # --- Manual Prediction Tracking ---
+    analysis_date_str = analysis_date.strftime("%Y-%m-%d")
+    
+    # Get actual results for the analysis_date
+    actual_open = "N/A"
+    actual_close = "N/A"
+    actual_jodi = "N/A"
+    
+    current_day_data = df[df['date'] == analysis_date_str]
+    if not current_day_data.empty:
+        # Assuming 'open_panel', 'close_panel', 'jodi' are available in df
+        actual_open = str(current_day_data['open'].iloc[-1])
+        actual_close = str(current_day_data['close'].iloc[-1])
+        actual_jodi = str(current_day_data['jodi'].iloc[-1])
+    else:
+        logging.warning(f"No actual data found for {analysis_date_str} in CSV. Cannot track manual predictions.")
+
+    logging.debug(f"DEBUG: Tracking for date: {analysis_date_str}")
+    logging.debug(f"DEBUG: Actual Open: {actual_open}, Actual Close: {actual_close}, Actual Jodi: {actual_jodi}")
+
+    manual_preds_data = load_manual_predictions()
+    if analysis_date_str in manual_preds_data: # Only track if there are predictions for today
+        manual_preds_data = track_hits(
+            analysis_date_str, 
+            actual_open, 
+            actual_close, 
+            actual_jodi, 
+            manual_preds_data
+        )
+        save_manual_predictions(manual_preds_data)
+        tracking_summary = get_tracking_summary(manual_preds_data)
+        logging.info(f"Manual prediction tracking summary: {tracking_summary}")
+
+        # Enhance Telegram message with tracking summary
+        telegram_message_parts.append("\n<b>Manual Prediction Tracking:</b>")
+        telegram_message_parts.append(f"Total Predictions: {tracking_summary['total_predictions']}")
+        telegram_message_parts.append(f"Total Hits: {tracking_summary['total_hits']}")
+        telegram_message_parts.append(f"Overall Hit Rate: {tracking_summary['overall_hit_rate']:.2f}%")
+        
+        # Add daily breakdown if applicable
+        if analysis_date_str in tracking_summary['daily_breakdown']:
+            daily_summary = tracking_summary['daily_breakdown'][analysis_date_str]
+            telegram_message_parts.append(f"<u>Today ({analysis_date_str}):</u>")
+            telegram_message_parts.append(f"  Hits: {daily_summary['hits']}")
+            telegram_message_parts.append(f"  Misses: {daily_summary['misses']}")
+            telegram_message_parts.append(f"  Pending: {daily_summary['pending']}")
+        
+        # Re-send the message with updated content
+        full_message = "\n".join(telegram_message_parts) # No HTML replace here, just join
+        send_telegram_message(full_message)
+
+    # --- End Manual Prediction Tracking ---
 
 
 
