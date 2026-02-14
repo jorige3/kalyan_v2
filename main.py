@@ -284,24 +284,7 @@ def main():
         pdf.output(pdf_path)
         logging.info(f"📄 PDF saved to {pdf_path}")
 
-    # Prepare and send Telegram notification
-    telegram_message_parts = [
-        f"*{escape_markdown_v2_chars(ReportText.CONSOLE_HEADER_TITLE)}* \\- {analysis_date:%d\\-%b\\-%Y}",
-        f"Market Mood: `{escape_markdown_v2_chars(summary['market_mood'])}`",
-        f"Analytical Confidence: `{summary['analytical_confidence_score']}/10`",
-        "*Top Picks:*"
-    ]
 
-    for p in summary["top_picks_with_confidence"]:
-        value = escape_markdown_v2_chars(str(p['value']))
-        confidence = escape_markdown_v2_chars(p['confidence'])
-        telegram_message_parts.append(f"• `{value}` \\({confidence}\\)")
-        for r in p["reasons"]:
-            escaped_reason = escape_markdown_v2_chars(r)
-            telegram_message_parts.append(f"  \\- _{escaped_reason}_")
-    
-    send_telegram_message("\n\n".join(telegram_message_parts))
-    logging.info("Telegram notification sent.")
 
 
 if __name__ == "__main__":
