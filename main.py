@@ -17,7 +17,7 @@ from src.analysis.trend_window import TrendWindowAnalyzer
 from src.analysis.sangam_analysis import SangamAnalyzer
 from src.analysis.explainability import explain_pick
 from src.ux.text_templates import ReportText
-from src.telegram_notifier import send_telegram_message, escape_markdown_v2_chars # Import Telegram notifier and escape utility
+from src.telegram_notifier import send_telegram_message, escape_html_chars # Import Telegram notifier and escape utility
 
 # Load environment variables from .env file
 load_dotenv()

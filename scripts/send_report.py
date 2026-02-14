@@ -6,10 +6,14 @@ import logging
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
+import sys
+
+# Add the project root to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.engine.kalyan_engine import KalyanEngine
 from src.analysis.backtester import Backtester
-from src.telegram_notifier import send_telegram_message, escape_markdown_v2_chars
+from src.telegram_notifier import send_telegram_message, escape_html_chars
 from src.ux.text_templates import ReportText
 
 # Configure logging
@@ -82,30 +86,32 @@ def send_daily_report():
 
         # 4. Construct Telegram message
         telegram_message_parts = [
-            f"*{escape_markdown_v2_chars(ReportText.CONSOLE_HEADER_TITLE)}* \\- {datetime.now().strftime('%d\\-%b\\-%Y')}",
-            f"Market Mood: `{escape_markdown_v2_chars(market_mood)}`",
-            f"Analytical Confidence: `{analytical_confidence_score}/10`",
-            f"Overall Backtest Hit Rate (Top 5): `{hit_rate:.2f}\\%`",
-            f"Latest Result (Jodi): `{escape_markdown_v2_chars(latest_actual_jodi)}`",
-            "", # Empty line for spacing
-            "*Top Analytical Picks:*"
+            f"<b>{escape_html_chars(ReportText.CONSOLE_HEADER_TITLE)}</b> - {datetime.now().strftime('%d-%b-%Y')}",
+            f"Market Mood: <code>{escape_html_chars(market_mood)}</code>",
+            f"Analytical Confidence: <code>{analytical_confidence_score}/10</code>",
+            f"Overall Backtest Hit Rate (Top 5): <code>{hit_rate:.2f}%</code>",
+            f"Latest Result (Jodi): <code>{escape_html_chars(latest_actual_jodi)}</code>",
+            "", # Empty line for spacing, which HTML generally ignores unless <br> or <p> is used.
+            "<b>Top Analytical Picks:</b>"
         ]
 
         if ranked_picks:
             for p in ranked_picks[:5]: # Limit to top 5 picks
-                value = escape_markdown_v2_chars(str(p.get('value', 'N/A')))
-                confidence = escape_markdown_v2_chars(p.get('confidence', 'N/A'))
-                telegram_message_parts.append(f"• `{value}` \\({confidence}\\)")
+                value = str(p.get('value', 'N/A')) # Already passed through escape_html_chars in the `code` tag.
+                confidence = escape_html_chars(p.get('confidence', 'N/A'))
+                telegram_message_parts.append(f"• <code>{value}</code> <b>({confidence})</b>")
                 reasons = p.get("reasons", [])
                 if reasons:
                     for r in reasons:
-                        escaped_reason = escape_markdown_v2_chars(r)
-                        telegram_message_parts.append(f"  \\- _{escaped_reason}_")
+                        # For reasons, use <i> for italics as it was originally `_reason_`
+                        # and put the content through escape_html_chars
+                        telegram_message_parts.append(f"  - <i>{escape_html_chars(r)}</i>")
         else:
             telegram_message_parts.append("No top picks available.")
 
-        # 5. Send via Telegram
-        full_message = "\n\n".join(telegram_message_parts)
+        # HTML uses <br> for line breaks, and multiple <br> for paragraphs
+        # Replace Markdown newlines with HTML line breaks
+        full_message = "\n".join(telegram_message_parts)
         send_telegram_message(full_message)
 
     except Exception as e:
