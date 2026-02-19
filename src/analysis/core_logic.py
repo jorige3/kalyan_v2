@@ -1,8 +1,8 @@
 from typing import Dict
 
-import config
-from src.analysis.explainability import explain_pick
-from src.ux.text_templates import ReportText
+from kalyan_v2 import config
+from kalyan_v2.src.analysis.explainability import explain_pick
+from kalyan_v2.src.ux.text_templates import ReportText
 
 
 def generate_daily_summary_and_confidence(analysis_results: Dict) -> Dict:
@@ -34,6 +34,22 @@ def generate_daily_summary_and_confidence(analysis_results: Dict) -> Dict:
             score += config.SCORING_WEIGHTS["EXTENDED_ABSENCE_JODI"]
         if val in signals["exhausted"]:
             score += config.SCORING_WEIGHTS["EXHAUSTED_PATTERN_PENALTY"]
+
+        # Hot Open Sangams
+        if val in analysis_results["hot_open_sangams"]:
+            score += config.SCORING_WEIGHTS["HIGH_FREQUENCY_OPEN_SANGAM"]
+
+        # Hot Close Sangams
+        if val in analysis_results["hot_close_sangams"]:
+            score += config.SCORING_WEIGHTS["HIGH_FREQUENCY_CLOSE_SANGAM"]
+
+        # Due Open Sangams
+        if val in analysis_results["due_open_sangams"]:
+            score += config.SCORING_WEIGHTS["EXTENDED_ABSENCE_OPEN_SANGAM"]
+
+        # Due Close Sangams
+        if val in analysis_results["due_close_sangams"]:
+            score += config.SCORING_WEIGHTS["EXTENDED_ABSENCE_CLOSE_SANGAM"]
 
         confidence = ReportText.CONFIDENCE_LOW
         if score >= config.CONFIDENCE_THRESHOLDS["HIGH"]:

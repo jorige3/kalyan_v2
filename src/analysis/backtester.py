@@ -2,12 +2,12 @@
 
 import pandas as pd
 
-from src.analysis.core_logic import (
+from .core_logic import (
     generate_daily_summary_and_confidence,  # Import from core_logic.py
 )
-from src.analysis.hot_cold import HotColdAnalyzer
-from src.analysis.sangam_analysis import SangamAnalyzer
-from src.analysis.trend_window import TrendWindowAnalyzer
+from .hot_cold import HotColdAnalyzer
+from .sangam_analysis import SangamAnalyzer
+from .trend_window import TrendWindowAnalyzer
 
 
 class Backtester:

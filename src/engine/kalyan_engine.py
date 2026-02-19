@@ -23,7 +23,7 @@ class KalyanEngine:
         and preprocesses it.
         """
         try:
-            df = pd.read_csv(self.data_path)
+            df = pd.read_csv(self.data_path, dtype={'jodi': str, 'open': str, 'close': str})
             # Ensure column names are standardized
             df.columns = [col.strip().lower().replace(' ', '_') for col in df.columns]
             

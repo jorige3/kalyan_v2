@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Add the project root to sys.path for local imports when running as a script
+if __name__ == "__main__" and __package__ is None:
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import argparse
 import hashlib
 import json
@@ -10,25 +17,25 @@ import pandas as pd
 from dotenv import load_dotenv  # Import load_dotenv
 from fpdf import FPDF, XPos, YPos
 
-from src.analysis.backtester import Backtester  # Import Backtester
-from src.analysis.core_logic import (
+from kalyan_v2.src.analysis.backtester import Backtester  # Import Backtester
+from kalyan_v2.src.analysis.core_logic import (
     generate_daily_summary_and_confidence,  # Import generate_daily_summary_and_confidence
 )
-from src.analysis.hot_cold import HotColdAnalyzer
-from src.analysis.sangam_analysis import SangamAnalyzer
-from src.analysis.trend_window import TrendWindowAnalyzer
-from src.engine.kalyan_engine import KalyanEngine
-from src.telegram_notifier import (  # Import Telegram notifier and escape utility
+from kalyan_v2.src.analysis.hot_cold import HotColdAnalyzer
+from kalyan_v2.src.analysis.sangam_analysis import SangamAnalyzer
+from kalyan_v2.src.analysis.trend_window import TrendWindowAnalyzer
+from kalyan_v2.src.engine.kalyan_engine import KalyanEngine
+from kalyan_v2.src.telegram_notifier import (  # Import Telegram notifier and escape utility
     escape_html_chars,
     send_telegram_message,
 )
-from src.tracking.manual_tracker import (  # Import manual tracking functions
+from kalyan_v2.src.tracking.manual_tracker import (  # Import manual tracking functions
     get_tracking_summary,
     load_manual_predictions,
     save_manual_predictions,
     track_hits,
 )
-from src.ux.text_templates import ReportText
+from kalyan_v2.src.ux.text_templates import ReportText
 
 # Load environment variables from .env file
 load_dotenv()
@@ -165,7 +172,7 @@ class PDFReport(FPDF):
 def main():
     parser = argparse.ArgumentParser(description=ReportText.PROJECT_TITLE)
     parser.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"))
-    parser.add_argument("--csv", default="data/kalyan.csv")
+    parser.add_argument("--csv", default=str(BASE_DIR / "data" / "kalyan.csv"))
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 

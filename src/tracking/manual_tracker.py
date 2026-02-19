@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List
 
-import config
+from kalyan_v2 import config
 
 logger = logging.getLogger(__name__)
 
