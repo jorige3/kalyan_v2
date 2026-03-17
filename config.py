@@ -1,5 +1,5 @@
 """
-Centralized Configuration for Kalyan Prediction System v2.0
+Centralized Configuration for Kalyan Prediction System v2.1 (Ensemble Upgrade)
 """
 import os
 from pathlib import Path
@@ -20,7 +20,8 @@ REPORTS_DIR.mkdir(exist_ok=True)
 BASE_DIR.joinpath("logs").mkdir(exist_ok=True)
 
 # --- Model Parameters ---
-# Heat Model settings
+
+# 1. Heat Model settings
 RECENT_WINDOW = 30
 LONG_TERM_WINDOW = 90
 HEAT_MODEL_WEIGHTS = {
@@ -28,10 +29,28 @@ HEAT_MODEL_WEIGHTS = {
     'absence': 0.2,
     'long_term_freq': 0.1
 }
-MIN_FREQUENCY_THRESHOLD = 0.0 # Min relative frequency to be considered "hot"
 
-# Momentum Model settings
+# 2. Digit Momentum Model settings
+DIGIT_WINDOW = 30
+
+# 3. Gap Cluster Model settings
+GAP_MIN = 25
+GAP_MAX = 40
+
+# 4. Mirror Pair Model settings
+MIRROR_WINDOW = 15
+
+# 5. Streak Momentum Model settings
 MOMENTUM_WINDOW = 7
+
+# --- Ensemble Configuration ---
+ENSEMBLE_WEIGHTS = {
+    'heat': 0.50,
+    'digit': 0.20,
+    'gap': 0.15,
+    'momentum': 0.10,
+    'mirror': 0.05
+}
 
 # --- Backtest Configuration ---
 BACKTEST_WARMUP = 60 # Min days of data before starting backtest
