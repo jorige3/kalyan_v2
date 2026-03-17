@@ -1,0 +1,38 @@
+2026-03-16 10:10:16,141 - kalyan_v2 - INFO - Starting Kalyan Prediction System Refactored.
+2026-03-16 10:10:16,149 - kalyan_v2 - INFO - Loaded data with 61 records.
+2026-03-16 10:10:16,149 - kalyan_v2 - INFO - Running rolling backtest to determine historical confidence...
+2026-03-16 10:10:16,194 - kalyan_v2 - INFO - Backtest complete. Top 5 Hit Rate: 100.00%
+2026-03-16 10:10:16,243 - kalyan_v2 - INFO - Generated predictions based on historical heat score.
+2026-03-16 10:10:16,361 - kalyan_v2 - INFO - Workflow completed successfully.
+2026-03-16 10:11:58,500 - kalyan_v2 - INFO - Starting Kalyan Prediction System Refactored.
+2026-03-16 10:11:58,508 - kalyan_v2 - INFO - Loaded data with 312 records.
+2026-03-16 10:11:58,508 - kalyan_v2 - INFO - Running rolling backtest to determine historical confidence...
+2026-03-16 10:12:08,462 - kalyan_v2 - INFO - Backtest complete. Top 5 Hit Rate: 2.78%
+2026-03-16 10:12:08,507 - kalyan_v2 - INFO - Generated predictions based on historical heat score.
+2026-03-16 10:12:08,612 - kalyan_v2 - INFO - Workflow completed successfully.
+2026-03-16 10:20:58,741 - kalyan_v2 - INFO - Starting Kalyan Prediction System Ensemble v2.1
+2026-03-16 10:20:58,749 - kalyan_v2 - INFO - Loaded data with 312 records.
+2026-03-16 10:20:58,750 - kalyan_v2 - INFO - Running rolling backtest for Ensemble model...
+2026-03-16 10:21:18,784 - kalyan_v2 - INFO - Ensemble Backtest complete. Top 5 Hit Rate: 5.16%
+2026-03-16 10:21:18,872 - kalyan_v2 - INFO - Generated ensemble predictions.
+2026-03-16 13:49:22,975 - kalyan_v2 - INFO - Starting Kalyan Prediction System Ensemble v2.1
+2026-03-16 13:49:22,983 - kalyan_v2 - INFO - Loaded data with 312 records.
+2026-03-16 13:49:22,983 - kalyan_v2 - INFO - Running rolling backtest for Ensemble model...
+2026-03-16 13:49:43,204 - kalyan_v2 - INFO - Ensemble Backtest complete. Top 5 Hit Rate: 5.16%
+2026-03-16 13:49:43,290 - kalyan_v2 - INFO - Generated ensemble predictions.
+2026-03-16 19:45:17,788 - kalyan_v2 - INFO - Starting Kalyan Prediction System Ensemble v2.1
+2026-03-16 19:45:17,805 - kalyan_v2 - INFO - Loaded data with 312 records.
+2026-03-16 19:45:17,805 - kalyan_v2 - INFO - Running rolling backtest for Ensemble model...
+2026-03-16 19:45:43,694 - kalyan_v2 - INFO - Ensemble Backtest complete. Top 5 Hit Rate: 5.16%
+2026-03-16 19:45:43,803 - kalyan_v2 - INFO - Generated ensemble predictions.
+2026-03-16 19:45:45,158 - kalyan_v2 - INFO - Ensemble workflow completed successfully.
+2026-03-17 04:02:40,552 - kalyan_v2 - INFO - ========================================
+2026-03-17 04:02:40,552 - kalyan_v2 - INFO - Initializing Kalyan Prediction System v2.0
+2026-03-17 04:02:40,571 - kalyan_v2 - INFO - Loaded 312 records from /home/kishore/kalyan_v2/data/kalyan.csv
+2026-03-17 04:02:40,571 - kalyan_v2 - INFO - Using prediction model: HeatModel
+2026-03-17 04:02:40,571 - kalyan_v2 - INFO - Running rolling backtest for HeatModel...
+2026-03-17 04:02:50,893 - kalyan_v2 - INFO - Generated predictions successfully.
+2026-03-17 04:02:51,012 - kalyan_v2 - INFO - Kalyan prediction workflow for 2026-03-17 completed successfully.
+2026-03-17 04:03:01,320 - kalyan_v2 - INFO - ========================================
+2026-03-17 04:03:01,321 - kalyan_v2 - INFO - Initializing Kalyan Prediction System v2.0
+2026-03-17 04:03:01,322 - kalyan_v2 - INFO - Report for 2026-03-17 already exists. Skipping run. Use --force to override.

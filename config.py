@@ -1,44 +1,47 @@
-# Configuration for analysis
-CYCLE_GAP_MAX_DAYS = 7 # Days a number hasn't appeared to be considered 'due'
-DUE_THRESHOLD = 30 # Lookback days for due cycles
-DUE_TOP_N = 5 # Not directly used in current due cycle logic, but kept for future expansion
+"""
+Centralized Configuration for Kalyan Prediction System v2.0
+"""
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
-HOT_LOOKBACK_DAYS = 30 # Days to look back for hot numbers
-HOT_TOP_N = 3 # Top N hot digits/jodis
+# Load environment variables (from .env if present)
+load_dotenv()
 
-EXHAUSTED_LOOKBACK_DAYS = 30 # Days to look back for exhausted numbers
-EXHAUSTED_GAP_THRESHOLD = 3 # Number of consecutive hits to consider exhausted (e.g., 3+ hits)
-EXHAUSTED_BOTTOM_N = 3 # Not directly used in current exhausted logic, but kept for future expansion
+# --- Project Paths ---
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR / "data" / "kalyan.csv"
+REPORTS_DIR = BASE_DIR / "reports"
+FONTS_DIR = BASE_DIR / "fonts"
+LOG_FILE = BASE_DIR / "logs" / "app.log"
 
-TOP_PICKS_COUNT = 3 # Number of top picks to generate
+# Create directories if they don't exist
+REPORTS_DIR.mkdir(exist_ok=True)
+BASE_DIR.joinpath("logs").mkdir(exist_ok=True)
 
-# Monte Carlo Simulation
-MONTE_CARLO_SIMULATIONS = 1000
-
-# --- Scoring Weights ---
-# Weights for different analytical signals to calculate confidence scores.
-# Higher values give more importance to that signal.
-SCORING_WEIGHTS = {
-    "HIGH_FREQUENCY_JODI": 1.5,          # From HotColdAnalyzer
-    "TREND_ALIGNED_JODI": 1.5,           # From TrendWindowAnalyzer
-    "EXTENDED_ABSENCE_JODI": 0.75,       # From HotColdAnalyzer (due_cycles)
-    
-    "HIGH_FREQUENCY_OPEN_SANGAM": 1.2,
-    "HIGH_FREQUENCY_CLOSE_SANGAM": 1.2,
-    "EXTENDED_ABSENCE_OPEN_SANGAM": 0.6,
-    "EXTENDED_ABSENCE_CLOSE_SANGAM": 0.6,
-    
-    "EXHAUSTED_PATTERN_PENALTY": -2.5    # Penalty for being in the exhausted list
+# --- Model Parameters ---
+# Heat Model settings
+RECENT_WINDOW = 30
+LONG_TERM_WINDOW = 90
+HEAT_MODEL_WEIGHTS = {
+    'recent_freq': 0.7,
+    'absence': 0.2,
+    'long_term_freq': 0.1
 }
+MIN_FREQUENCY_THRESHOLD = 0.0 # Min relative frequency to be considered "hot"
 
-# --- Confidence Thresholds ---
-# Score thresholds for classifying a pick's confidence level.
-CONFIDENCE_THRESHOLDS = {
-    "HIGH": 2.5,
-    "MEDIUM": 1.0,
-}
+# Momentum Model settings
+MOMENTUM_WINDOW = 7
 
-# --- Manual Predictions Configuration ---
-MANUAL_PREDICTIONS_CONFIG = {
-    "FILE_PATH": "config/manual_predictions.json"
-}
+# --- Backtest Configuration ---
+BACKTEST_WARMUP = 60 # Min days of data before starting backtest
+BACKTEST_TOP_N = [5, 10] # Track hit rate for top 5 and top 10
+
+# --- Telegram Configuration ---
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+# --- System Settings ---
+SKIP_BACKTEST = False
+SKIP_TELEGRAM = False
+CHECK_DUPLICATE_RUN = True # Prevent running multiple times for same date
