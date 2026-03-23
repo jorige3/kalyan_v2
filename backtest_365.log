@@ -1,0 +1,30 @@
+2026-03-23 15:49:07,191 - kalyan_v2 - INFO - ========================================
+2026-03-23 15:49:07,191 - kalyan_v2 - INFO - Initializing Kalyan Ensemble Prediction System v2.1
+2026-03-23 15:49:07,206 - kalyan_v2 - INFO - Loaded 3895 records.
+2026-03-23 15:49:07,206 - kalyan_v2 - INFO - Using Ensemble Model with weights: {'heat': 0.3, 'digit': 0.2, 'gap': 0.3, 'momentum': 0.1, 'mirror': 0.1}
+2026-03-23 15:49:07,206 - kalyan_v2 - INFO - Running rolling backtest for Ensemble model (last 365 days)...
+2026-03-23 15:50:10,853 - kalyan_v2 - INFO - Generated smart ensemble predictions successfully.
+
+============================================================
+📊 KALYAN PREDICTION SUMMARY | 23-Mar-2026
+============================================================
+Historical Confidence (Top 5): 5.48%
+Historical Confidence (Top 10): 9.59%
+------------------------------------------------------------
+
+🏆 TOP 5 JODI PICKS:
+1. Jodi: 13 | Score: 0.6115
+2. Jodi: 15 | Score: 0.5717
+3. Jodi: 31 | Score: 0.5582
+4. Jodi: 27 | Score: 0.5535
+5. Jodi: 36 | Score: 0.5291
+
+✨ NEXT TOP 5 (TOTAL 10):
+6. Jodi: 65 | Score: 0.5093
+7. Jodi: 77 | Score: 0.4913
+8. Jodi: 00 | Score: 0.4534
+9. Jodi: 49 | Score: 0.4405
+10. Jodi: 88 | Score: 0.4398
+============================================================
+
+2026-03-23 15:50:10,980 - kalyan_v2 - INFO - Kalyan Ensemble workflow for 2026-03-23 completed successfully.

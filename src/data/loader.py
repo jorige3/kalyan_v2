@@ -52,7 +52,8 @@ class DataLoader:
         data = []
         for i in range(days):
             date = start_date + timedelta(days=i)
-            if date.weekday() == 6: continue # Skip Sundays
+            if date.weekday() == 6:
+                continue # Skip Sundays
             
             open_p = "".join(sorted([str(random.randint(0, 9)) for _ in range(3)]))
             close_p = "".join(sorted([str(random.randint(0, 9)) for _ in range(3)]))

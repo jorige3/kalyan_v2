@@ -33,6 +33,7 @@ def main():
     parser.add_argument("--skip-backtest", action="store_true", default=config.SKIP_BACKTEST, help="Skip backtest")
     parser.add_argument("--skip-telegram", action="store_true", default=config.SKIP_TELEGRAM, help="Skip Telegram")
     parser.add_argument("--force", action="store_true", help="Force run override")
+    parser.add_argument("--backtest-days", type=int, default=30, help="Number of days for backtesting")
     args = parser.parse_args()
 
     # 0. Check for Duplicate Run
@@ -62,9 +63,9 @@ def main():
     # 3. Rolling Backtest (to get confidence score for the ENSEMBLE)
     metrics = {'hit_rate_top5': 0.0, 'hit_rate_top10': 0.0}
     if not args.skip_backtest:
-        logger.info("Running rolling backtest for Ensemble model (last 30 days)...")
+        logger.info(f"Running rolling backtest for Ensemble model (last {args.backtest_days} days)...")
         backtester = RollingBacktester(ensemble_model)
-        backtest_results = backtester.run(df, max_days=30)
+        backtest_results = backtester.run(df, max_days=args.backtest_days)
         if backtest_results:
             metrics['hit_rate_top5'] = backtest_results['hit_rate_top5']
             metrics['hit_rate_top10'] = backtest_results['hit_rate_top10']

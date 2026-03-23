@@ -21,7 +21,8 @@ class GapClusterModel:
         Scores jodis based on their absence gap.
         Score is 1.0 if the jodi is within the target gap cluster.
         """
-        if df.empty: return []
+        if df.empty:
+            return []
         
         all_jodis = [f"{i:02d}" for i in range(100)]
         predictions = []

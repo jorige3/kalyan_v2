@@ -17,7 +17,8 @@ class DigitMomentumModel:
 
     def get_digit_scores(self, df: pd.DataFrame) -> Dict[int, float]:
         """Returns normalized scores for digits 0-9 based on combined Open/Close frequency."""
-        if df.empty: return {i: 0.0 for i in range(10)}
+        if df.empty:
+            return {i: 0.0 for i in range(10)}
         
         recent_df = df.tail(self.window)
         jodis = recent_df['jodi'].astype(str).str.zfill(2)
@@ -42,7 +43,8 @@ class DigitMomentumModel:
         Generates digit-based predictions.
         Score = (OpenDigitFreq + CloseDigitFreq) / 2
         """
-        if df.empty: return []
+        if df.empty:
+            return []
         
         recent_df = df.tail(self.window)
         # Ensure jodi strings are zfilled

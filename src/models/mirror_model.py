@@ -19,7 +19,8 @@ class MirrorPairModel:
         """
         Boosts jodis based on the recent appearance of their mirror counterparts.
         """
-        if df.empty: return []
+        if df.empty:
+            return []
         
         recent_jodis = df['jodi'].tail(self.window).astype(str).str.zfill(2).tolist()
         

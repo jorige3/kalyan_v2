@@ -21,7 +21,8 @@ class EnsembleModel:
         Calculates weighted scores from all sub-models.
         Each sub-model must return a list of {value, score}.
         """
-        if df.empty: return []
+        if df.empty:
+            return []
 
         # Get scores from all sub-models
         model_predictions = {}

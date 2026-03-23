@@ -98,3 +98,13 @@
 2026-03-23 15:35:39,483 - kalyan_v2 - INFO - Running rolling backtest for Ensemble model (last 30 days)...
 2026-03-23 15:35:45,711 - kalyan_v2 - INFO - Generated smart ensemble predictions successfully.
 2026-03-23 15:35:45,869 - kalyan_v2 - INFO - Kalyan Ensemble workflow for 2026-03-23 completed successfully.
+2026-03-23 15:42:58,024 - kalyan_v2 - INFO - ========================================
+2026-03-23 15:42:58,025 - kalyan_v2 - INFO - Initializing Kalyan Ensemble Prediction System v2.1
+2026-03-23 15:42:58,027 - kalyan_v2 - INFO - Report for 2026-03-23 already exists. Skipping run. Use --force to override.
+2026-03-23 15:49:07,191 - kalyan_v2 - INFO - ========================================
+2026-03-23 15:49:07,191 - kalyan_v2 - INFO - Initializing Kalyan Ensemble Prediction System v2.1
+2026-03-23 15:49:07,206 - kalyan_v2 - INFO - Loaded 3895 records.
+2026-03-23 15:49:07,206 - kalyan_v2 - INFO - Using Ensemble Model with weights: {'heat': 0.3, 'digit': 0.2, 'gap': 0.3, 'momentum': 0.1, 'mirror': 0.1}
+2026-03-23 15:49:07,206 - kalyan_v2 - INFO - Running rolling backtest for Ensemble model (last 365 days)...
+2026-03-23 15:50:10,853 - kalyan_v2 - INFO - Generated smart ensemble predictions successfully.
+2026-03-23 15:50:10,980 - kalyan_v2 - INFO - Kalyan Ensemble workflow for 2026-03-23 completed successfully.

@@ -21,7 +21,8 @@ class MomentumModel:
         Generates momentum-based predictions.
         Higher score for jodis that appeared recently or are 'hot' in the momentum window.
         """
-        if df.empty: return []
+        if df.empty:
+            return []
         
         all_jodis = [f"{i:02d}" for i in range(100)]
         

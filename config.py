@@ -46,13 +46,12 @@ MOMENTUM_WINDOW = 7
 
 # --- Ensemble Configuration ---
 ENSEMBLE_WEIGHTS = {
-    'heat': 0.50,
-    'digit': 0.20,
-    'gap': 0.15,
-    'momentum': 0.10,
-    'mirror': 0.05
+    "heat": 0.3,
+    "digit": 0.2,
+    "gap": 0.3,
+    "momentum": 0.1,
+    "mirror": 0.1
 }
-
 # --- Smart Ranker Configuration ---
 SMART_RANKER_WEIGHTS = {
     "base_score": 0.5,
