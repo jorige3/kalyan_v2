@@ -1,6 +1,9 @@
-import pandas as pd
 from typing import Dict
+
+import pandas as pd
+
 from src.utils.logger import setup_logger
+
 
 class TrendAnalyzer:
     """Analyzes recent trends and streaks in Kalyan market outcomes."""

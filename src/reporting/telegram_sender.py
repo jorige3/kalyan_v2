@@ -1,9 +1,10 @@
-import os
-import requests
 import logging
-import html
-from typing import List, Dict, Any
+import os
 from datetime import datetime
+from typing import Any, Dict, List
+
+import requests
+
 
 class TelegramSender:
     """Handles sending notifications to Telegram."""

@@ -1,7 +1,9 @@
+from typing import Any, Dict, List
+
 import pandas as pd
-from typing import List, Dict, Any
+
 from src.utils.logger import setup_logger
-import config
+
 
 class MirrorPairModel:
     """

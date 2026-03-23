@@ -1,8 +1,10 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from fpdf import FPDF, XPos, YPos
+
 
 class PDFReport(FPDF):
     def __init__(self, fonts_dir: Path):
@@ -80,7 +82,10 @@ class ReportGenerator:
         pdf.set_font("DejaVu", "", 9)
         for i, p in enumerate(predictions[:10], 1):
             m = p['metrics']
-            metric_str = f"{m.get('recent_freq', 0.0):.2f}/{m.get('long_term_freq', 0.0):.2f}/{m.get('absence_score', 0.0):.2f}"
+            # Safely extract heat metrics if available (might be nested)
+            heat_m = m.get('heat', {}) if isinstance(m.get('heat'), dict) else m
+            
+            metric_str = f"H:{heat_m.get('recent_freq', 0.0):.2f} | R:{m.get('recency_boost', 0.0):.2f} | D:{m.get('delay_boost', 0.0):.1f}"
             
             pdf.cell(widths[0], 7, str(i), 1, align="C")
             pdf.cell(widths[1], 7, p['value'], 1, align="C")

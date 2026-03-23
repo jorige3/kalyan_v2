@@ -2,6 +2,7 @@ import logging
 import sys
 from pathlib import Path
 
+
 def setup_logger(name: str = "kalyan_v2", log_file: str = "logs/app.log") -> logging.Logger:
     """Sets up a logger with console and file handlers."""
     logger = logging.getLogger(name)

@@ -1,8 +1,10 @@
+from typing import Any, Dict, List
+
 import pandas as pd
-import numpy as np
-from typing import List, Dict, Any
-from src.utils.logger import setup_logger
+
 import config
+from src.utils.logger import setup_logger
+
 
 class HeatModel:
     """

@@ -1,7 +1,9 @@
+from typing import Any, Dict, List
+
 import pandas as pd
-from typing import List, Dict, Any
+
 from src.utils.logger import setup_logger
-import config
+
 
 class DigitMomentumModel:
     """
@@ -12,6 +14,28 @@ class DigitMomentumModel:
     def __init__(self, window: int = 30):
         self.window = window
         self.logger = setup_logger()
+
+    def get_digit_scores(self, df: pd.DataFrame) -> Dict[int, float]:
+        """Returns normalized scores for digits 0-9 based on combined Open/Close frequency."""
+        if df.empty: return {i: 0.0 for i in range(10)}
+        
+        recent_df = df.tail(self.window)
+        jodis = recent_df['jodi'].astype(str).str.zfill(2)
+        
+        # Combined frequency of digits in both positions
+        all_digits = pd.concat([jodis.str[0], jodis.str[1]])
+        counts = all_digits.value_counts(normalize=True).to_dict()
+        
+        # Max observed frequency to normalize
+        max_freq = max(counts.values()) if counts else 1.0
+        
+        scores = {}
+        for i in range(10):
+            d = str(i)
+            # Normalize relative to max observed
+            scores[i] = float(counts.get(d, 0.0) / max_freq) if max_freq > 0 else 0.0
+            
+        return scores
 
     def predict(self, df: pd.DataFrame) -> List[Dict[str, Any]]:
         """

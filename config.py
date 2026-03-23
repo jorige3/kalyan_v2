@@ -3,6 +3,7 @@ Centralized Configuration for Kalyan Prediction System v2.1 (Ensemble Upgrade)
 """
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Load environment variables (from .env if present)
@@ -50,6 +51,15 @@ ENSEMBLE_WEIGHTS = {
     'gap': 0.15,
     'momentum': 0.10,
     'mirror': 0.05
+}
+
+# --- Smart Ranker Configuration ---
+SMART_RANKER_WEIGHTS = {
+    "base_score": 0.5,
+    "recency": 0.2,
+    "delay": 0.15,
+    "digit_score": 0.1,
+    "penalty": -0.2
 }
 
 # --- Backtest Configuration ---

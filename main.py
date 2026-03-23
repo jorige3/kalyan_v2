@@ -2,23 +2,24 @@
 Kalyan Prediction System Ensemble Orchestrator v2.1
 Scientific Refactor for Production Readiness
 """
-import sys
 import argparse
+import sys
 from datetime import datetime
-from src.utils.logger import setup_logger
 
 # Import internal modules
 import config
-from src.data.loader import DataLoader
-from src.models.heat_model import HeatModel
-from src.models.momentum_model import MomentumModel
-from src.models.digit_model import DigitMomentumModel
-from src.models.gap_model import GapClusterModel
-from src.models.mirror_model import MirrorPairModel
-from src.models.ensemble_model import EnsembleModel
 from src.backtest.rolling_backtester import RollingBacktester
+from src.data.loader import DataLoader
+from src.models.digit_model import DigitMomentumModel
+from src.models.ensemble_model import EnsembleModel
+from src.models.gap_model import GapClusterModel
+from src.models.heat_model import HeatModel
+from src.models.mirror_model import MirrorPairModel
+from src.models.momentum_model import MomentumModel
 from src.reporting.report_generator import ReportGenerator
 from src.reporting.telegram_sender import TelegramSender
+from src.utils.logger import setup_logger
+
 
 def main():
     # Setup Logger
@@ -61,9 +62,9 @@ def main():
     # 3. Rolling Backtest (to get confidence score for the ENSEMBLE)
     metrics = {'hit_rate_top5': 0.0, 'hit_rate_top10': 0.0}
     if not args.skip_backtest:
-        logger.info("Running rolling backtest for Ensemble model...")
+        logger.info("Running rolling backtest for Ensemble model (last 30 days)...")
         backtester = RollingBacktester(ensemble_model)
-        backtest_results = backtester.run(df)
+        backtest_results = backtester.run(df, max_days=30)
         if backtest_results:
             metrics['hit_rate_top5'] = backtest_results['hit_rate_top5']
             metrics['hit_rate_top10'] = backtest_results['hit_rate_top10']
@@ -78,13 +79,35 @@ def main():
         logger.warning(f"No historical data before {args.date}. Using latest records.")
         df_for_prediction = df
     
-    predictions = ensemble_model.predict(df_for_prediction)
-    logger.info("Generated ensemble predictions successfully.")
+    # 4.1 Base Ensemble Predictions
+    raw_predictions = ensemble_model.predict(df_for_prediction)
+    
+    # 4.2 Get Yesterday's Top 10 for Delay Boost
+    # Yesterday's top 10 are the predictions made FOR yesterday using data before yesterday
+    yesterday_df = df_for_prediction.iloc[:-1] if len(df_for_prediction) > 1 else df_for_prediction
+    yesterday_raw_predictions = ensemble_model.predict(yesterday_df)
+    yesterday_top10 = [p['value'] for p in yesterday_raw_predictions[:10]]
+    
+    # 4.3 Get Digit Scores
+    digit_scores = sub_models['digit'].get_digit_scores(df_for_prediction)
+    
+    # 4.4 Apply Smart Ranker
+    from src.models.smart_ranker import SmartRanker
+    smart_ranker = SmartRanker(weights=config.SMART_RANKER_WEIGHTS)
+    
+    predictions = smart_ranker.rerank(
+        raw_predictions, 
+        df_for_prediction, 
+        digit_scores, 
+        yesterday_top10
+    )
+    
+    logger.info("Generated smart ensemble predictions successfully.")
 
     # 5. Reporting
     reporter = ReportGenerator(reports_dir=config.REPORTS_DIR, fonts_dir=config.FONTS_DIR)
     reporter.generate_console_report(predictions, metrics)
-    pdf_path = reporter.generate_pdf_report(predictions, metrics)
+    reporter.generate_pdf_report(predictions, metrics)
 
     # 6. Telegram Notification
     if not args.skip_telegram:
