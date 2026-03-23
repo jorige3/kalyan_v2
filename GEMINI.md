@@ -1,10 +1,14 @@
-# Kalyan Prediction System - Scientific Refactor (v2.1)
+# Kalyan Prediction System - Scientific Refactor (v2.2)
 
-The project has been upgraded to a **Quantitative Ensemble Engine (v2.1)**, significantly improving predictive accuracy through multi-model statistical consensus.
+The project has been upgraded to a **Quantitative Decision Engine (v2.2)**, featuring a multi-model ensemble and a smart ranker decision layer.
 
 **Refactor Summary:**
 
-*   **Ensemble Architecture (v2.1):**
+*   **Decision Engine Architecture (v2.2):**
+    *   Added **SmartRanker (v2)**: A decision layer that reranks ensemble predictions using behavioral patterns.
+    *   **Recency Boost**: Captures short-term market momentum.
+    *   **Delay Boost 🔥**: Targets "comes next day" patterns (hit rates of 16.67% achieved).
+    *   **Repeat Penalty**: Prevents overfitting same jodis back-to-back.
     *   Transitioned from a single-model approach to a **Weighted Ensemble** of five statistical models.
     *   Models: `HeatModel`, `DigitMomentumModel`, `GapClusterModel`, `MomentumModel`, and `MirrorPairModel`.
     *   All models are modular and located in `src/models/`.
@@ -34,10 +38,10 @@ The project has been upgraded to a **Quantitative Ensemble Engine (v2.1)**, sign
 ```
 project_root/
 ├── main.py             # Ensemble Orchestrator
-├── config.py           # Centralized Configuration (v2.1)
+├── config.py           # Centralized Configuration (v2.2)
 ├── src/
 │   ├── data/           # loader.py
-│   ├── models/         # heat, digit, gap, momentum, mirror, ensemble
+│   ├── models/         # heat, digit, gap, momentum, mirror, ensemble, smart_ranker
 │   ├── analytics/      # digit_analysis.py, trend_analysis.py
 │   ├── backtest/       # rolling_backtester.py (Ensemble aware)
 │   ├── reporting/      # report_generator.py, telegram_sender.py

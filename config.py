@@ -1,5 +1,5 @@
 """
-Centralized Configuration for Kalyan Prediction System v2.1 (Ensemble Upgrade)
+Centralized Configuration for Kalyan Prediction System v2.2 (Decision Engine Upgrade)
 """
 import os
 from pathlib import Path

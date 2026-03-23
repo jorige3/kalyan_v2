@@ -1,5 +1,5 @@
 """
-Kalyan Prediction System Ensemble Orchestrator v2.1
+Kalyan Prediction System Ensemble Orchestrator v2.2
 Scientific Refactor for Production Readiness
 """
 import argparse
@@ -25,7 +25,7 @@ def main():
     # Setup Logger
     logger = setup_logger(log_file=config.LOG_FILE)
     logger.info("="*40)
-    logger.info("Initializing Kalyan Ensemble Prediction System v2.1")
+    logger.info("Initializing Kalyan Ensemble Prediction System v2.2")
 
     # Command Line Arguments
     parser = argparse.ArgumentParser(description="Kalyan Market Scientific Ensemble System")

@@ -1,5 +1,5 @@
 """
-Refinement Script: Kalyan Ensemble Weight Optimization v2.1
+Refinement Script: Kalyan Ensemble Weight Optimization v2.2
 Performs a sweep of weight combinations against historical data to maximize hit rates.
 """
 import sys
