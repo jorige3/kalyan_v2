@@ -66,13 +66,16 @@ class RollingBacktester:
                 yesterday_top10
             )
             
-            # Use Scientific Top 5 Filter
-            from src.models.top5_filter import select_top5
-            top_10 = [p['value'] for p in final_predictions[:10]]
-            top_5 = select_top5(top_10, train_df, digit_scores, config)
+            # Use Micro Rank Engine v2.4 (Rerank Top 10)
+            from src.models.micro_ranker import rerank_top10
+            top_10_candidates = [p['value'] for p in final_predictions[:10]]
+            top_10_reranked = rerank_top10(top_10_candidates, train_df, digit_scores)
+            
+            top_5 = top_10_reranked[:5]
+            top_10 = top_10_reranked # Still top 10 candidates, just reranked
             
             # Update yesterday_top10 for NEXT iteration (tomorrow)
-            yesterday_top10 = top_10
+            yesterday_top10 = [p['value'] for p in final_predictions[:10]]
             
             # Calculate hits
             is_hit_top5 = actual_jodi in top_5

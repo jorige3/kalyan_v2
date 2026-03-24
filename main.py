@@ -103,24 +103,23 @@ def main():
         yesterday_top10
     )
     
-    # 4.5 Filter Top 5 for Scientific Quality
-    top10 = [p['value'] for p in predictions[:10]]
-    from src.models.top5_filter import select_top5
-    top5 = select_top5(top10, df_for_prediction, digit_scores, config)
+    # 4.5 Micro Rank Engine v2.4 (Top 10 Reranking)
+    top10_candidates = [p['value'] for p in predictions[:10]]
+    from src.models.micro_ranker import rerank_top10
+    top10_reranked = rerank_top10(top10_candidates, df_for_prediction, digit_scores)
     
-    # Re-rank predictions list to prioritize selected top5
-    top5_objs = []
-    for val in top5:
-        for p in predictions:
+    # Re-map top10 objects to reflect new order for Top 5 reporting
+    reranked_objs = []
+    for val in top10_reranked:
+        for p in predictions[:10]:
             if p['value'] == val:
-                top5_objs.append(p)
+                reranked_objs.append(p)
                 break
     
-    # Remainder of top 10 and rest
-    rest_objs = [p for p in predictions if p['value'] not in top5]
-    predictions = top5_objs + rest_objs
+    # Update predictions list (Reranked Top 10 + original remainder)
+    predictions = reranked_objs + predictions[10:]
     
-    logger.info("Generated smart ensemble predictions successfully with top 5 filter.")
+    logger.info("Generated smart ensemble predictions successfully with Micro Rank v2.4.")
 
     # 5. Reporting
     reporter = ReportGenerator(reports_dir=config.REPORTS_DIR, fonts_dir=config.FONTS_DIR)
