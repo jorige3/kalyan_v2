@@ -103,7 +103,24 @@ def main():
         yesterday_top10
     )
     
-    logger.info("Generated smart ensemble predictions successfully.")
+    # 4.5 Filter Top 5 for Scientific Quality
+    top10 = [p['value'] for p in predictions[:10]]
+    from src.models.top5_filter import select_top5
+    top5 = select_top5(top10, df_for_prediction, digit_scores, config)
+    
+    # Re-rank predictions list to prioritize selected top5
+    top5_objs = []
+    for val in top5:
+        for p in predictions:
+            if p['value'] == val:
+                top5_objs.append(p)
+                break
+    
+    # Remainder of top 10 and rest
+    rest_objs = [p for p in predictions if p['value'] not in top5]
+    predictions = top5_objs + rest_objs
+    
+    logger.info("Generated smart ensemble predictions successfully with top 5 filter.")
 
     # 5. Reporting
     reporter = ReportGenerator(reports_dir=config.REPORTS_DIR, fonts_dir=config.FONTS_DIR)

@@ -66,8 +66,10 @@ class RollingBacktester:
                 yesterday_top10
             )
             
-            top_5 = [p['value'] for p in final_predictions[:5]]
+            # Use Scientific Top 5 Filter
+            from src.models.top5_filter import select_top5
             top_10 = [p['value'] for p in final_predictions[:10]]
+            top_5 = select_top5(top_10, train_df, digit_scores, config)
             
             # Update yesterday_top10 for NEXT iteration (tomorrow)
             yesterday_top10 = top_10

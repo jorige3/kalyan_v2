@@ -61,6 +61,12 @@ SMART_RANKER_WEIGHTS = {
     "penalty": -0.2
 }
 
+# Top 5 Filter Settings
+FILTER_MIN_DIGIT_SCORE = 0.35
+FILTER_MAX_ABSENCE = 120
+FILTER_MIN_RECENT = 0.01
+FILTER_MIN_DELAY = 5
+
 # --- Backtest Configuration ---
 BACKTEST_WARMUP = 60 # Min days of data before starting backtest
 BACKTEST_TOP_N = [5, 10] # Track hit rate for top 5 and top 10
