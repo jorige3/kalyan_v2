@@ -35,11 +35,14 @@ class ReportGenerator:
 
     def generate_console_report(self, predictions: List[Dict[str, Any]], metrics: Dict[str, Any]):
         """Prints a summary to the console."""
+        conf = metrics.get('system_confidence', 0.0)
+        
         print("\n" + "="*60)
         print(f"📊 KALYAN PREDICTION SUMMARY | {datetime.now().strftime('%d-%b-%Y')}")
         print("="*60)
-        print(f"Historical Confidence (Top 5): {metrics.get('hit_rate_top5', 0)*100:.2f}%")
-        print(f"Historical Confidence (Top 10): {metrics.get('hit_rate_top10', 0)*100:.2f}%")
+        print(f"System Confidence: {conf:.1f}/10")
+        print(f"Historical Top 5: {metrics.get('hit_rate_top5', 0)*100:.2f}% | Recent 30d: {metrics.get('recent_top5', 0)*100:.2f}%")
+        print(f"Historical Top 10: {metrics.get('hit_rate_top10', 0)*100:.2f}% | Recent 30d: {metrics.get('recent_top10', 0)*100:.2f}%")
         print("-" * 60)
         
         print("\n🏆 TOP 5 JODI PICKS:")

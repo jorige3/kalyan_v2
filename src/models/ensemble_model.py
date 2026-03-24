@@ -29,6 +29,19 @@ class EnsembleModel:
         for name, model in self.models.items():
             self.logger.debug(f"Calculating scores for sub-model: {name}")
             preds = model.predict(df)
+            
+            # Normalize scores to 0-1 range
+            if preds:
+                scores = [p['score'] for p in preds]
+                min_s, max_s = min(scores), max(scores)
+                range_s = max_s - min_s
+                
+                for p in preds:
+                    if range_s > 0:
+                        p['score'] = (p['score'] - min_s) / range_s
+                    else:
+                        p['score'] = 1.0 if max_s > 0 else 0.0
+
             # Create a lookup for quick access: { 'XX': score }
             model_predictions[name] = {p['value']: p for p in preds}
 

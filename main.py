@@ -25,7 +25,7 @@ def main():
     # Setup Logger
     logger = setup_logger(log_file=config.LOG_FILE)
     logger.info("="*40)
-    logger.info("Initializing Kalyan Ensemble Prediction System v2.2")
+    logger.info("Initializing Kalyan Ensemble Prediction System v2.4")
 
     # Command Line Arguments
     parser = argparse.ArgumentParser(description="Kalyan Market Scientific Ensemble System")
@@ -61,14 +61,33 @@ def main():
     logger.info(f"Using Ensemble Model with weights: {config.ENSEMBLE_WEIGHTS}")
 
     # 3. Rolling Backtest (to get confidence score for the ENSEMBLE)
-    metrics = {'hit_rate_top5': 0.0, 'hit_rate_top10': 0.0}
+    metrics = {
+        'hit_rate_top5': 0.0, 'hit_rate_top10': 0.0, 
+        'recent_top5': 0.0, 'recent_top10': 0.0,
+        'system_confidence': 0.0
+    }
+    
     if not args.skip_backtest:
         logger.info(f"Running rolling backtest for Ensemble model (last {args.backtest_days} days)...")
         backtester = RollingBacktester(ensemble_model)
         backtest_results = backtester.run(df, max_days=args.backtest_days)
         if backtest_results:
-            metrics['hit_rate_top5'] = backtest_results['hit_rate_top5']
-            metrics['hit_rate_top10'] = backtest_results['hit_rate_top10']
+            metrics.update(backtest_results)
+            
+            # Calculate System Confidence (0-10 Scale)
+            # Base: Top 10 Hit Rate (Target 12% -> 6.0)
+            # Bonus: Recent Trend > Overall
+            
+            base_score = min(10.0, (metrics['hit_rate_top10'] / 0.12) * 6.0)
+            consistency_bonus = 0.0
+            if metrics['recent_top10'] > metrics['hit_rate_top10']:
+                consistency_bonus = 1.0
+            elif metrics['recent_top10'] < metrics['hit_rate_top10'] * 0.8:
+                consistency_bonus = -1.0
+                
+            final_conf = max(0.0, min(10.0, base_score + consistency_bonus))
+            metrics['system_confidence'] = final_conf
+            logger.info(f"System Confidence Score: {final_conf:.1f}/10")
         else:
             logger.warning("Insufficient data for backtesting.")
 
@@ -130,6 +149,31 @@ def main():
     if not args.skip_telegram:
         telegram = TelegramSender()
         telegram.send_prediction_update(predictions, metrics)
+
+    # 7. Daily Performance Tracking
+    try:
+        actual_row = df[df['date'] == analysis_date]
+        actual_jodi = str(actual_row.iloc[0]['jodi']).zfill(2) if not actual_row.empty else "Pending"
+        
+        top5 = [p['value'] for p in predictions[:5]]
+        top10 = [p['value'] for p in predictions[:10]]
+        
+        hit_status = "Miss"
+        if actual_jodi != "Pending":
+            if actual_jodi in top5:
+                hit_status = "Top5_Hit"
+            elif actual_jodi in top10:
+                hit_status = "Top10_Hit"
+        
+        delay_hit = "delay_hit" if actual_jodi in yesterday_top10 else "no_delay"
+        
+        log_line = f"{analysis_date.strftime('%d-%b')} | {top5} | {top10} | {actual_jodi} | {hit_status} | {delay_hit}\n"
+        
+        with open(config.PERFORMANCE_LOG, "a") as f:
+            f.write(log_line)
+        logger.info(f"Performance tracked: {hit_status} | {delay_hit}")
+    except Exception as e:
+        logger.error(f"Failed to track daily performance: {e}")
 
     logger.info(f"Kalyan Ensemble workflow for {args.date} completed successfully.")
 

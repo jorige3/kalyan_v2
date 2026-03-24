@@ -56,15 +56,23 @@ class SmartRanker:
             # 1. Days absent (Recency)
             last_seen_date = last_seen.get(jodi)
             if last_seen_date:
-                days_absent = (last_date - last_seen_date).days + 1
+                days_absent = (last_date - last_seen_date).days
             else:
                 days_absent = 365
             
-            recency_boost = 1 / days_absent
+            # Smoother linear decay (1.0 at 0 days, 0.0 at 30 days)
+            recency_boost = max(0.0, 1.0 - (days_absent / 30.0))
 
-            # 2. Delay boost (Yesterday's Top 10)
-            delay_boost = 1.0 if jodi in yesterday_top10 else 0.0
-            if delay_boost > 0:
+            # 2. Delay boost (Yesterday's Top 10 - Rank Weighted)
+            delay_boost = 0.0
+            if jodi in yesterday_top10:
+                rank = yesterday_top10.index(jodi)
+                if rank == 0:
+                    delay_boost = 1.0
+                elif rank < 5:
+                    delay_boost = 0.8
+                else:
+                    delay_boost = 0.5
                 delay_boost_count += 1
 
             # 3. Digit strength

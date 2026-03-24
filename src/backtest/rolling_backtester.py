@@ -98,12 +98,32 @@ class RollingBacktester:
         hit_rate_top5 = results_df['hit_top5'].mean()
         hit_rate_top10 = results_df['hit_top10'].mean()
         
-        self.logger.info(f"Backtest complete. Top 5 Hit Rate: {hit_rate_top5*100:.2f}%")
-        self.logger.info(f"Backtest complete. Top 10 Hit Rate: {hit_rate_top10*100:.2f}%")
+        # Yearly Breakdown
+        results_df['year'] = results_df['date'].dt.year
+        yearly_breakdown = results_df.groupby('year')[['hit_top5', 'hit_top10']].mean()
         
+        # Recent 30-day Performance
+        recent_30 = results_df.tail(30)
+        recent_top5 = recent_30['hit_top5'].mean()
+        recent_top10 = recent_30['hit_top10'].mean()
+        
+        self.logger.info("-" * 40)
+        self.logger.info(f"Backtest Overall (Top 5): {hit_rate_top5*100:.2f}%")
+        self.logger.info(f"Backtest Overall (Top 10): {hit_rate_top10*100:.2f}%")
+        self.logger.info("-" * 40)
+        self.logger.info(f"Recent 30 Days (Top 5): {recent_top5*100:.2f}%")
+        self.logger.info(f"Recent 30 Days (Top 10): {recent_top10*100:.2f}%")
+        self.logger.info("-" * 40)
+        self.logger.info("Yearly Breakdown:")
+        for year, row in yearly_breakdown.iterrows():
+            self.logger.info(f"  {year}: Top 5={row['hit_top5']*100:.1f}%, Top 10={row['hit_top10']*100:.1f}%")
+            
         return {
             'results_df': results_df,
             'hit_rate_top5': float(hit_rate_top5),
             'hit_rate_top10': float(hit_rate_top10),
+            'recent_top5': float(recent_top5),
+            'recent_top10': float(recent_top10),
+            'yearly_breakdown': yearly_breakdown.to_dict(),
             'total_days': len(results_df)
         }

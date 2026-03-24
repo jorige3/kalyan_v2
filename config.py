@@ -1,5 +1,5 @@
 """
-Centralized Configuration for Kalyan Prediction System v2.2 (Decision Engine Upgrade)
+Centralized Configuration for Kalyan Prediction System v2.4 (Decision Engine Upgrade)
 """
 import os
 from pathlib import Path
@@ -15,6 +15,7 @@ DATA_PATH = BASE_DIR / "data" / "kalyan.csv"
 REPORTS_DIR = BASE_DIR / "reports"
 FONTS_DIR = BASE_DIR / "fonts"
 LOG_FILE = BASE_DIR / "logs" / "app.log"
+PERFORMANCE_LOG = BASE_DIR / "logs" / "performance_tracker.log"
 
 # Create directories if they don't exist
 REPORTS_DIR.mkdir(exist_ok=True)
@@ -60,12 +61,6 @@ SMART_RANKER_WEIGHTS = {
     "digit_score": 0.1,
     "penalty": -0.2
 }
-
-# Top 5 Filter Settings
-FILTER_MIN_DIGIT_SCORE = 0.35
-FILTER_MAX_ABSENCE = 120
-FILTER_MIN_RECENT = 0.01
-FILTER_MIN_DELAY = 5
 
 # --- Backtest Configuration ---
 BACKTEST_WARMUP = 60 # Min days of data before starting backtest
