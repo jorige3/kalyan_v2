@@ -1,0 +1,39 @@
+(venv) kishore@JORIGE-PC:~/kalyan_v2$ python main.py --force
+2026-04-14 17:19:29,471 - kalyan_v2 - INFO - ========================================
+2026-04-14 17:19:29,471 - kalyan_v2 - INFO - Initializing Kalyan Ensemble Prediction System v2.4
+2026-04-14 17:19:29,714 - kalyan_v2 - INFO - Loaded 3972 records.
+2026-04-14 17:19:29,715 - kalyan_v2 - INFO - Using weights: {'heat': 0.25, 'digit': 0.4, 'gap': 0.15, 'momentum': 0.1, 'mirror': 0.1} (Experimental Mode: False)
+2026-04-14 17:19:29,715 - kalyan_v2 - INFO - Running rolling backtest for Ensemble model (last 30 days)...
+2026-04-14 17:19:36,082 - kalyan_v2 - INFO - System Confidence Score: 6.7/10
+2026-04-14 17:19:36,712 - kalyan_v2 - INFO - Generated smart ensemble predictions successfully with Delay Engine v1.
+
+============================================================
+📊 KALYAN PREDICTION SUMMARY | 14-Apr-2026
+============================================================
+System Confidence: 6.7/10
+Historical Top 5: 6.67% | Recent 30d: 6.67%
+Historical Top 10: 13.33% | Recent 30d: 13.33%
+------------------------------------------------------------
+
+🏆 TOP 5 JODI PICKS:
+1. Jodi: 51 | Score: 1.2711
+2. Jodi: 56 | Score: 0.9680
+3. Jodi: 16 | Score: 0.8276
+4. Jodi: 11 | Score: 0.7787
+5. Jodi: 26 | Score: 0.7745
+
+✨ NEXT TOP 5 (TOTAL 10):
+6. Jodi: 28 | Score: 0.7742
+7. Jodi: 96 | Score: 0.7553
+8. Jodi: 50 | Score: 0.7474
+9. Jodi: 76 | Score: 0.6259
+10. Jodi: 19 | Score: 0.6223
+============================================================
+
+2026-04-14 17:19:37,871 - kalyan_v2 - INFO - Performance tracked: Miss | no_delay
+2026-04-14 17:19:37,871 - kalyan_v2 - INFO - Kalyan Ensemble workflow for 2026-04-14 completed successfully.
+(venv) kishore@JORIGE-PC:~/kalyan_v2$ nano workflow.txt
+(venv) kishore@JORIGE-PC:~/kalyan_v2$ cat logs/performance_tracker.log
+13-Apr | ['51', '56', '16', '50', '11'] | ['56', '51', '15', '90', '70', '54', '16', '11', '77', '50'] | 30 | Miss | no_delay
+14-Apr | ['51', '56', '96', '15', '11'] | ['51', '56', '15', '70', '54', '21', '63', '11', '77', '58'] | 03 | Miss | no_delay
+15-Apr | ['51', '56', '16', '11', '26'] | ['51', '56', '11', '16', '54', '76', '50', '15', '71', '70'] | waiting | Miss | no_delay

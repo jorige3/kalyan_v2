@@ -47,17 +47,27 @@ MOMENTUM_WINDOW = 7
 
 # --- Ensemble Configuration ---
 ENSEMBLE_WEIGHTS = {
-    "heat": 0.3,
-    "digit": 0.2,
-    "gap": 0.3,
+    "heat": 0.25,
+    "digit": 0.4,
+    "gap": 0.15,
     "momentum": 0.1,
     "mirror": 0.1
 }
+
+EXPERIMENTAL_WEIGHTS = {
+    "heat": 0.20,
+    "digit": 0.3,
+    "gap": 0.10,
+    "momentum": 0.1,
+    "mirror": 0.1
+}
+
+USE_EXPERIMENTAL_MODE = False
 # --- Smart Ranker Configuration ---
 SMART_RANKER_WEIGHTS = {
     "base_score": 0.5,
     "recency": 0.2,
-    "delay": 0.15,
+    "delay": 0.2,
     "digit_score": 0.1,
     "penalty": -0.2
 }
@@ -74,3 +84,11 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 SKIP_BACKTEST = False
 SKIP_TELEGRAM = False
 CHECK_DUPLICATE_RUN = True # Prevent running multiple times for same date
+
+# --- Delay Intelligence Engine Configuration ---
+DELAY_ENGINE_ENABLED = True
+DELAY_WEIGHTS = {
+    "strong": 0.25,
+    "medium": 0.10,
+    "penalty": 0.15
+}

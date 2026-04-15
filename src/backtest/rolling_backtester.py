@@ -5,6 +5,7 @@ import pandas as pd
 
 import config
 from src.models.smart_ranker import SmartRanker
+from src.models.delay_engine import apply_delay_boost
 
 
 class RollingBacktester:
@@ -63,7 +64,7 @@ class RollingBacktester:
                 raw_predictions,
                 train_df,
                 digit_scores,
-                yesterday_top10
+                [yesterday_top10] if yesterday_top10 else []
             )
             
             # Use Micro Rank Engine v2.4 (Rerank Top 10)
@@ -71,8 +72,39 @@ class RollingBacktester:
             top_10_candidates = [p['value'] for p in final_predictions[:10]]
             top_10_reranked = rerank_top10(top_10_candidates, train_df, digit_scores)
             
-            top_5 = top_10_reranked[:5]
-            top_10 = top_10_reranked # Still top 10 candidates, just reranked
+            # Re-map top10 objects to reflect new order for Top 10 reporting
+            reranked_objs = []
+            for val in top_10_reranked:
+                for p in final_predictions[:10]:
+                    if p['value'] == val:
+                        reranked_objs.append(p)
+                        break
+            
+            # Update predictions list
+            final_predictions = reranked_objs + final_predictions[10:]
+
+            # 4. Delay Intelligence Engine v1 (New Modular Layer)
+            if config.DELAY_ENGINE_ENABLED:
+                # Precompute last_seen_map for backtest step
+                all_jodis = [f"{i:02d}" for i in range(100)]
+                last_seen_map = {}
+                for jodi in all_jodis:
+                    idx = train_df[train_df['jodi'] == jodi].index
+                    if not idx.empty:
+                        days_since = len(train_df) - 1 - idx[-1]
+                        last_seen_map[jodi] = days_since
+                    else:
+                        last_seen_map[jodi] = 999
+
+                final_predictions = apply_delay_boost(
+                    final_predictions,
+                    previous_top10=yesterday_top10,
+                    last_seen_map=last_seen_map,
+                    delay_weights=config.DELAY_WEIGHTS
+                )
+
+            top_5 = [p['value'] for p in final_predictions[:5]]
+            top_10 = [p['value'] for p in final_predictions[:10]]
             
             # Update yesterday_top10 for NEXT iteration (tomorrow)
             yesterday_top10 = [p['value'] for p in final_predictions[:10]]

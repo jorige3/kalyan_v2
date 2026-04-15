@@ -99,3 +99,43 @@ class ReportGenerator:
         pdf.output(pdf_path)
         self.logger.info(f"PDF report generated: {pdf_path}")
         return pdf_path
+
+    def generate_json_report(self, predictions: List[Dict[str, Any]], metrics: Dict[str, Any]) -> Path:
+        """Generates a JSON report for machine-readability."""
+        import json
+        import pandas as pd
+        import numpy as np
+        json_path = self.reports_dir / f"kalyan_analysis_{datetime.now():%Y-%m-%d}.json"
+        
+        def json_serializable(obj):
+            """Recursive function to make dicts/lists JSON serializable."""
+            if isinstance(obj, (dict, pd.Series)):
+                return {k: json_serializable(v) for k, v in dict(obj).items()}
+            elif isinstance(obj, (list, tuple)):
+                return [json_serializable(i) for i in obj]
+            elif isinstance(obj, (np.int64, np.int32, np.int16, np.int8)):
+                return int(obj)
+            elif isinstance(obj, (np.float64, np.float32, np.float16)):
+                return float(obj)
+            elif isinstance(obj, (np.bool_, bool)):
+                return bool(obj)
+            elif isinstance(obj, pd.DataFrame):
+                return None # Skip dataframes
+            else:
+                return obj
+
+        report_data = {
+            "analysis_date": datetime.now().strftime("%Y-%m-%d"),
+            "generated_at": datetime.now().isoformat(),
+            "metrics": json_serializable(metrics),
+            "ranked_picks": json_serializable(predictions[:20]) 
+        }
+        
+        try:
+            with open(json_path, 'w') as f:
+                json.dump(report_data, f, indent=4)
+            self.logger.info(f"JSON report generated: {json_path}")
+        except Exception as e:
+            self.logger.error(f"Failed to generate JSON report: {e}")
+            
+        return json_path

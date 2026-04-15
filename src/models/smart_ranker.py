@@ -24,13 +24,13 @@ class SmartRanker:
         predictions: List[Dict[str, Any]], 
         df: pd.DataFrame, 
         digit_scores: Dict[int, float], 
-        yesterday_top10: List[str]
+        recent_top10s: List[List[str]] = None
     ) -> List[Dict[str, Any]]:
         """
         Reranks predictions based on:
         1. Base Ensemble Score
         2. Recency Boost (Trend continues)
-        3. Delay Boost (Yesterday's Top 10)
+        3. Multi-Day Delay Boost (Last 3 days Top 10)
         4. Digit Strength (Combined digit intelligence)
         5. Repeat Penalty (Avoid overfitting)
         """
@@ -41,13 +41,13 @@ class SmartRanker:
         last_date = df["date"].max()
         
         # Calculate last seen for each jodi in the dataset
-        # Ensure jodi is string and zero-padded
         df_copy = df.copy()
         df_copy['jodi_str'] = df_copy['jodi'].astype(str).str.zfill(2)
         last_seen = df_copy.groupby("jodi_str")["date"].max()
         yesterday_jodi = df_copy.iloc[-1]["jodi_str"]
 
         delay_boost_count = 0
+        recent_top10s = recent_top10s or []
         
         for p in predictions:
             jodi = str(p["value"]).zfill(2)
@@ -60,20 +60,22 @@ class SmartRanker:
             else:
                 days_absent = 365
             
-            # Smoother linear decay (1.0 at 0 days, 0.0 at 30 days)
             recency_boost = max(0.0, 1.0 - (days_absent / 30.0))
 
-            # 2. Delay boost (Yesterday's Top 10 - Rank Weighted)
+            # 2. Multi-Day Delay boost (Last 3 days Top 10)
+            # Weights: Day-1 (1.0), Day-2 (0.6), Day-3 (0.3)
             delay_boost = 0.0
-            if jodi in yesterday_top10:
-                rank = yesterday_top10.index(jodi)
-                if rank == 0:
-                    delay_boost = 1.0
-                elif rank < 5:
-                    delay_boost = 0.8
-                else:
-                    delay_boost = 0.5
-                delay_boost_count += 1
+            day_weights = [1.0, 0.6, 0.3]
+            
+            for i, top10 in enumerate(recent_top10s):
+                if i >= len(day_weights): break
+                if jodi in top10:
+                    rank = top10.index(jodi)
+                    # Rank weight: 1.0 for top 1, 0.8 for top 2-5, 0.5 for top 6-10
+                    rank_weight = 1.0 if rank == 0 else (0.8 if rank < 5 else 0.5)
+                    boost = rank_weight * day_weights[i]
+                    delay_boost = max(delay_boost, boost)
+                    if i == 0: delay_boost_count += 1
 
             # 3. Digit strength
             d1, d2 = int(jodi[0]), int(jodi[1])
@@ -91,7 +93,6 @@ class SmartRanker:
                 (penalty * self.weights.get("penalty", -0.2))
             )
 
-            # Keep original metrics if they exist
             metrics = p.get('metrics', {}).copy()
             metrics.update({
                 'base_score': base_score,
@@ -108,5 +109,4 @@ class SmartRanker:
             })
 
         self.logger.debug(f"SmartRanker: Applied delay boost to {delay_boost_count} jodis.")
-        # Sort by final score descending
         return sorted(final, key=lambda x: x["score"], reverse=True)
